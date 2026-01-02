@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .calculator {
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+            width: 450px;
+        }
+
+        .display-container {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .history {
+            color: #888;
+            font-size: 1em;
+            min-height: 25px;
+            text-align: right;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        .display {
+            color: #fff;
+            font-size: 2.5em;
+            text-align: right;
+            min-height: 60px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            background: #3a3a3a;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+        }
+
+        .mode-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        .buttons {
+            display: grid;
+            gap: 8px;
+        }
+
+        .basic-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .scientific-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        button {
+            padding: 18px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .number {
+            background: #3a3a3a;
+        }
+
+        .operator {
+            background: #ff9500;
+        }
+
+        .function {
+            background: #5856d6;
+        }
+
+        .clear {
+            background: #ff3b30;
+        }
+
+        .equals {
+            background: #34c759;
+        }
+
+        .backspace {
+            background: #ff6b6b;
+        }
+
+        .memory {
+            background: #007aff;
+            font-size: 0.95em;
+        }
+
+        .span-2 {
+            grid-column: span 2;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display-container">
+            <div class="history" id="history"></div>
+            <div class="display" id="display">0</div>
+        </div>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="toggleMode('basic')">Basic</button>
+            <button class="mode-btn" onclick="toggleMode('scientific')">Scientific</button>
+        </div>
+
+        <!-- Basic Mode -->
+        <div class="buttons basic-grid" id="basicButtons">
+            <button class="memory" onclick="memoryRecall()">MR</button>
+            <button class="memory" onclick="memoryClear()">MC</button>
+            <button class="memory" onclick="memoryAdd()">M+</button>
+            <button class="memory" onclick="memorySubtract()">M-</button>
+            <button class="clear" onclick="clearDisplay()">C</button>
+
+            <button class="function" onclick="appendFunction('Math.sqrt(')">√</button>
+            <button class="function" onclick="appendFunction('^2')">x²</button>
+            <button class="function" onclick="appendFunction('^')">xʸ</button>
+            <button class="operator" onclick="appendOperator('/')">÷</button>
+            <button class="backspace" onclick="backspace()">⌫</button>
+
+            <button class="number" onclick="appendNumber('7')">7</button>
+            <button class="number" onclick="appendNumber('8')">8</button>
+            <button class="number" onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+            <button class="operator" onclick="appendOperator('%')">%</button>
+
+            <button class="number" onclick="appendNumber('4')">4</button>
+            <button class="number" onclick="appendNumber('5')">5</button>
+            <button class="number" onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('-')">−</button>
+            <button class="function" onclick="appendFunction('1/(')">1/x</button>
+
+            <button class="number" onclick="appendNumber('1')">1</button>
+            <button class="number" onclick="appendNumber('2')">2</button>
+            <button class="number" onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+            <button class="function" onclick="toggleSign()">±</button>
+
+            <button class="number" onclick="appendNumber('0')">0</button>
+            <button class="number" onclick="appendNumber('00')">00</button>
+            <button class="number" onclick="appendNumber('.')">.</button>
+            <button class="equals span-2" onclick="calculate()">=</button>
+        </div>
+
+        <!-- Scientific Mode -->
+        <div class="buttons scientific-grid hidden" id="scientificButtons">
+            <button class="memory" onclick="memoryRecall()">MR</button>
+            <button class="memory" onclick="memoryClear()">MC</button>
+            <button class="function" onclick="appendFunction('Math.sin(')">sin</button>
+            <button class="function" onclick="appendFunction('Math.cos(')">cos</button>
+            <button class="function" onclick="appendFunction('Math.tan(')">tan</button>
+
+            <button class="function" onclick="appendFunction('Math.log10(')">log</button>
+            <button class="function" onclick="appendFunction('Math.log(')">ln</button>
+            <button class="function" onclick="appendNumber('Math.E')">e</button>
+            <button class="function" onclick="appendNumber('Math.PI')">π</button>
+            <button class="clear" onclick="clearDisplay()">C</button>
+
+            <button class="function" onclick="appendFunction('Math.sqrt(')">√</button>
+            <button class="function" onclick="appendFunction('^2')">x²</button>
+            <button class="function" onclick="appendFunction('^3')">x³</button>
+            <button class="function" onclick="appendFunction('^')">xʸ</button>
+            <button class="backspace" onclick="backspace()">⌫</button>
+
+            <button class="number" onclick="appendNumber('7')">7</button>
+            <button class="number" onclick="appendNumber('8')">8</button>
+            <button class="number" onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('/')">÷</button>
+            <button class="operator" onclick="appendOperator('%')">%</button>
+
+            <button class="number" onclick="appendNumber('4')">4</button>
+            <button class="number" onclick="appendNumber('5')">5</button>
+            <button class="number" onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+            <button class="function" onclick="appendFunction('factorial(')">n!</button>
+
+            <button class="number" onclick="appendNumber('1')">1</button>
+            <button class="number" onclick="appendNumber('2')">2</button>
+            <button class="number" onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="appendOperator('-')">−</button>
+            <button class="function" onclick="toggleSign()">±</button>
+
+            <button class="number" onclick="appendNumber('0')">0</button>
+            <button class="number" onclick="appendNumber('.')">.</button>
+            <button class="function" onclick="appendNumber('(')">(</button>
+            <button class="function" onclick="appendNumber(')')">)</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+
+            <button class="equals" onclick="calculate()" style="grid-column: span 5;">=</button>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let history = document.getElementById('history');
+        let currentInput = '0';
+        let memory = 0;
+        let currentMode = 'basic';
+
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+
+        function updateHistory(text) {
+            history.textContent = text;
+        }
+
+        function toggleMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (mode === 'basic') {
+                document.getElementById('basicButtons').classList.remove('hidden');
+                document.getElementById('scientificButtons').classList.add('hidden');
+            } else {
+                document.getElementById('basicButtons').classList.add('hidden');
+                document.getElementById('scientificButtons').classList.remove('hidden');
+            }
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            updateDisplay();
+            updateHistory('');
+        }
+
+        function backspace() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function appendNumber(num) {
+            if (currentInput === '0' && num !== '.') {
+                currentInput = num;
+            } else {
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            const lastChar = currentInput[currentInput.length - 1];
+            if (['+', '-', '*', '/', '%'].includes(lastChar)) {
+                currentInput = currentInput.slice(0, -1) + op;
+            } else {
+                currentInput += op;
+            }
+            updateDisplay();
+        }
+
+        function appendFunction(func) {
+            if (func === '^2') {
+                currentInput += '**2';
+            } else if (func === '^3') {
+                currentInput += '**3';
+            } else if (func === '^') {
+                currentInput += '**';
+            } else if (func === '1/(') {
+                currentInput = '1/(' + currentInput + ')';
+            } else {
+                if (currentInput === '0') {
+                    currentInput = func;
+                } else {
+                    currentInput += func;
+                }
+            }
+            updateDisplay();
+        }
+
+        function toggleSign() {
+            if (currentInput !== '0') {
+                if (currentInput.startsWith('-')) {
+                    currentInput = currentInput.substring(1);
+                } else {
+                    currentInput = '-' + currentInput;
+                }
+                updateDisplay();
+            }
+        }
+
+        function factorial(n) {
+            if (n < 0) return NaN;
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        function calculate() {
+            try {
+                updateHistory(currentInput + ' =');
+                
+                let expression = currentInput
+                    .replace(/×/g, '*')
+                    .replace(/÷/g, '/')
+                    .replace(/−/g, '-')
+                    .replace(/factorial\(/g, 'factorial(');
+
+                expression = expression.replace(/(\d+)!/g, 'factorial($1)');
+                
+                let result = eval(expression);
+                
+                if (typeof result === 'number') {
+                    if (!isFinite(result)) {
+                        currentInput = 'Error';
+                    } else {
+                        currentInput = String(Math.round(result * 1000000000) / 1000000000);
+                    }
+                } else {
+                    currentInput = 'Error';
+                }
+            } catch (e) {
+                currentInput = 'Error';
+            }
+            updateDisplay();
+        }
+
+        function memoryRecall() {
+            currentInput = String(memory);
+            updateDisplay();
+        }
+
+        function memoryClear() {
+            memory = 0;
+        }
+
+        function memoryAdd() {
+            try {
+                let value = eval(currentInput.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'));
+                memory += value;
+            } catch (e) {
+                // Do nothing on error
+            }
+        }
+
+        function memorySubtract() {
+            try {
+                let value = eval(currentInput.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'));
+                memory -= value;
+            } catch (e) {
+                // Do nothing on error
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(e) {
+            if (e.key >= '0' && e.key <= '9') {
+                appendNumber(e.key);
+            } else if (e.key === '.') {
+                appendNumber('.');
+            } else if (e.key === '+') {
+                appendOperator('+');
+            } else if (e.key === '-') {
+                appendOperator('-');
+            } else if (e.key === '*') {
+                appendOperator('*');
+            } else if (e.key === '/') {
+                appendOperator('/');
+            } else if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
+                calculate();
+            } else if (e.key === 'Escape') {
+                clearDisplay();
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                backspace();
+            }
+        });
+    </script>
+</body>
+</html>
